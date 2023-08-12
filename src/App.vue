@@ -1,29 +1,39 @@
 <template>
   <canvas ref="webGl" class="webGl" />
-  <div class="bottom-right" @click="throwDice">THROW</div>
+  <div class="bottom-right">
+    <btn :bg-color="randColor" @click="throwDice"> Throw </btn>
+    <btn :bg-color="randColor" @click="changeType"> Type </btn>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { useWindowSize } from "@vueuse/core";
 import { sample } from "matija-utils";
 import {
+  BoxGeometry,
   Color,
   DirectionalLight,
+  DodecahedronGeometry,
   IcosahedronGeometry,
   Mesh,
   MeshLambertMaterial,
+  OctahedronGeometry,
   PerspectiveCamera,
   Scene,
+  TetrahedronGeometry,
   WebGLRenderer
 } from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { computed, onMounted, ref, watch } from "vue";
+import btn from "./components/btn.vue";
 
 const webGl = ref();
 const throwing = ref(false);
+const queueIdx = ref(0);
 
 const { width, height } = useWindowSize();
 const aspectRatio = computed(() => width.value / height.value);
+
 let camera: PerspectiveCamera;
 let renderer: WebGLRenderer;
 let scene: Scene;
@@ -32,15 +42,26 @@ let controls: OrbitControls;
 let mainLight: DirectionalLight;
 let interval: number;
 
-const colors = ["orange", "pink", "purple", "red"];
+const colors = ["orange", "salmon", "purple", "red"];
+const geometries: any[] = [
+  new IcosahedronGeometry(), // 20
+  new DodecahedronGeometry(), // 12
+  new OctahedronGeometry(), // 8
+  new BoxGeometry(), // 6
+  new TetrahedronGeometry() //4
+];
+const sides = [20, 12, 8, 6, 4];
 const randColor = sample(colors);
 
 const setCanvas = () => {
   scene = new Scene();
   scene.background = new Color("black");
   mainLight = new DirectionalLight("white", 2);
+  mainLight.position.z = 15;
 
-  const geometry = new IcosahedronGeometry();
+  const geometry = geometries[queueIdx.value];
+  geometry.rotateX(95);
+  geometry.rotateZ(45);
 
   mesh = new Mesh(
     geometry,
@@ -101,8 +122,18 @@ const throwDice = () => {
     setTimeout(() => {
       clearInterval(interval);
       throwing.value = false;
+      console.log(sides[queueIdx.value]);
     }, 2000);
   }
+};
+
+const changeType = () => {
+  if (queueIdx.value + 1 > geometries.length - 1) {
+    queueIdx.value = 0;
+  } else {
+    queueIdx.value++;
+  }
+  mesh.geometry = geometries[queueIdx.value];
 };
 
 onMounted(() => {
@@ -116,17 +147,7 @@ onMounted(() => {
   position: fixed;
   bottom: 25px;
   right: 25px;
-  color: white;
-  background-color: v-bind(randColor);
-  width: 55px;
-  height: 55px;
-  border-radius: 100%;
-  font-size: 10px;
-  user-select: none;
-  cursor: pointer;
-  font-weight: bold;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  gap: 10px;
 }
 </style>
