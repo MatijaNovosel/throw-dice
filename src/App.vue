@@ -16,7 +16,7 @@ import {
   DodecahedronGeometry,
   IcosahedronGeometry,
   Mesh,
-  MeshLambertMaterial,
+  MeshPhongMaterial,
   OctahedronGeometry,
   PerspectiveCamera,
   Scene,
@@ -65,7 +65,7 @@ const setCanvas = () => {
 
   mesh = new Mesh(
     geometry,
-    new MeshLambertMaterial({
+    new MeshPhongMaterial({
       color: new Color(randColor)
     })
   );
