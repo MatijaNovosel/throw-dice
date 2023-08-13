@@ -1,5 +1,8 @@
 <template>
   <canvas ref="webGl" class="webGl" />
+  <div v-show="resultN !== 0" class="result">
+    {{ resultN }}
+  </div>
   <div class="bottom-right">
     <btn :bg-color="randColor" @click="throwDice"> Throw </btn>
     <btn :bg-color="randColor" @click="changeType"> Type </btn>
@@ -8,7 +11,7 @@
 
 <script setup lang="ts">
 import { useWindowSize } from "@vueuse/core";
-import { sample } from "matija-utils";
+import { randInt, sample } from "matija-utils";
 import {
   BoxGeometry,
   Color,
@@ -30,6 +33,7 @@ import btn from "./components/btn.vue";
 const webGl = ref();
 const throwing = ref(false);
 const queueIdx = ref(0);
+const resultN = ref(0);
 
 const { width, height } = useWindowSize();
 const aspectRatio = computed(() => width.value / height.value);
@@ -69,6 +73,7 @@ const setCanvas = () => {
       color: new Color(randColor)
     })
   );
+
   scene.add(mesh);
 
   camera = new PerspectiveCamera(45, aspectRatio.value, 0.1, 100);
@@ -85,6 +90,8 @@ const setCanvas = () => {
   controls.enablePan = false;
   controls.enableDamping = false;
   controls.enableZoom = false;
+
+  camera.lookAt(mesh.position);
 };
 
 const updateCamera = () => {
@@ -104,13 +111,6 @@ const animate = () => {
   requestAnimationFrame(animate);
 };
 
-watch(aspectRatio, (val) => {
-  if (val) {
-    updateCamera();
-    updateRenderer();
-  }
-});
-
 const throwDice = () => {
   if (!throwing.value) {
     throwing.value = true;
@@ -122,12 +122,15 @@ const throwDice = () => {
     setTimeout(() => {
       clearInterval(interval);
       throwing.value = false;
-      console.log(sides[queueIdx.value]);
+      const result = randInt(1, sides[queueIdx.value]);
+      resultN.value = result;
     }, 2000);
   }
 };
 
 const changeType = () => {
+  if (throwing.value) return;
+  resultN.value = 0;
   if (queueIdx.value + 1 > geometries.length - 1) {
     queueIdx.value = 0;
   } else {
@@ -135,6 +138,13 @@ const changeType = () => {
   }
   mesh.geometry = geometries[queueIdx.value];
 };
+
+watch(aspectRatio, (val) => {
+  if (val) {
+    updateCamera();
+    updateRenderer();
+  }
+});
 
 onMounted(() => {
   setCanvas();
@@ -149,5 +159,14 @@ onMounted(() => {
   right: 25px;
   display: flex;
   gap: 10px;
+}
+
+.result {
+  position: absolute;
+  font-size: 64px;
+  font-weight: bold;
+  color: white;
+  top: 25px;
+  left: 25px;
 }
 </style>
