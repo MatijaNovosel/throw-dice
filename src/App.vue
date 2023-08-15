@@ -5,7 +5,13 @@
   </div>
   <div class="bottom-right">
     <btn :bg-color="randColor" @click="throwDice"> Throw </btn>
-    <btn :bg-color="randColor" @click="changeType"> Type </btn>
+    <btn
+      style="font-size: 24px; font-weight: bold"
+      :bg-color="randColor"
+      @click="changeType"
+    >
+      {{ sides[queueIdx] }}
+    </btn>
   </div>
 </template>
 
